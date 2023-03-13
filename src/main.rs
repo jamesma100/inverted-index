@@ -3,12 +3,11 @@ use std::fs;
 use std::collections::HashMap;
 
 fn main() {
-    let mut word_pos: HashMap<String, String> = HashMap::new();
+    let mut word_pos = HashMap::new();
     let args: Vec<String> = env::args().collect();
     let dir_path = parse_config(&args);
-    let dir_path_clone = dir_path.clone();
 
-    let paths = fs::read_dir(dir_path_clone)
+    let paths = fs::read_dir(dir_path)
         .unwrap()
         .filter_map(|e| e.ok())
         .map(|e| e.path().to_string_lossy().into_owned())
@@ -23,15 +22,13 @@ fn main() {
             let splitline = line.split([' ', ',', '.', '?', '!']);
             for word in splitline {
                 if !word.is_empty() {
-                    println!("word: {}", word);
                     insert_into_hm(&mut word_pos, word, &path_clone); 
                 }
             }
         }
     }
-    for (word, pos) in &word_pos {
-        println!("{word}: {pos}");
-    }
+    // info(&mut word_pos);
+    // get_occurences(&mut word_pos, "well");
 }
 
 fn parse_config(args: &[String]) -> String {
@@ -39,9 +36,17 @@ fn parse_config(args: &[String]) -> String {
     file_path
 }
 
-fn insert_into_hm(hm: &mut HashMap<String, String>, word: &str, doc: &String) {
-    hm.insert(
-        word.to_owned(),
-        doc.to_owned(),
-    );
+fn insert_into_hm(hm: &mut HashMap<String, Vec<String>>, word: &str, doc: &String) {
+    hm.entry(word.to_owned()).or_insert(Vec::new()).push(doc.to_owned());
+}
+
+fn info(hm: &mut HashMap<String, Vec<String>>) {
+    for (word, pos) in hm {
+        println!("{}: {}", word, pos.len());
+    }
+}
+
+fn get_occurences(hm: &mut HashMap<String, Vec<String>>, word: &str) {
+    let docs = hm.get(word);
+    println!("{:?}", docs); 
 }
